@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Agent Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .chat-container {
+            width: 400px;
+            height: 700px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+        
+        .agent-avatar {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .agent-info h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .agent-info p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .status {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            position: relative;
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bot-message {
+            background: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .message-input:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .message-input::placeholder {
+            color: #6c757d;
+        }
+        
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .typing-indicator {
+            padding: 12px 18px;
+            background: white;
+            border-radius: 18px;
+            align-self: flex-start;
+            display: none;
+            color: #6c757d;
+            font-size: 13px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-bottom-left-radius: 4px;
+        }
+        
+        .typing-dots {
+            display: inline-flex;
+            gap: 3px;
+            margin-left: 8px;
+        }
+        
+        .typing-dots span {
+            width: 4px;
+            height: 4px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        
+        .welcome-badge {
+            background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            align-self: center;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(255, 126, 95, 0.3);
+        }
+        .trip-status {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin: 10px 20px;
+            font-size: 13px;
+            display: none;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+        
+        .status-complete {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        }
+        
+        .itinerary-result {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 10px 20px;
+            display: none;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .processing-animation {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="agent-avatar">✈️</div>
+            <div class="agent-info">
+                <h3>Travel Agent Pro</h3>
+                <p>Your Personal Trip Planner</p>
+            </div>
+            <div class="status">Online</div>
+        </div>
+        
+        <div class="messages" id="messages">
+            <div class="welcome-badge">Let's Plan Your Dream Trip! 🌴</div>
+            <div class="message bot-message">
+                🌍 Hello! I'm your personal travel agent! I can help you book flights, find amazing hotels, and create the perfect itinerary. Where shall we go today?
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typing">
+            Travel Agent is thinking
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        
+        <div class="input-area">
+            <input type="text" class="message-input" id="messageInput" placeholder="Tell me about your dream destination...">
+            <button class="send-button" id="sendButton">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const messages = document.getElementById('messages');
+const messageInput = document.getElementById('messageInput');
+const sendButton = document.getElementById('sendButton');
+const typingIndicator = document.getElementById('typing');
+
+// Create status elements if they don't exist
+function createStatusElements() {
+    if (!document.getElementById('tripStatus')) {
+        const tripStatus = document.createElement('div');
+        tripStatus.id = 'tripStatus';
+        tripStatus.className = 'trip-status';
+        tripStatus.innerHTML = `
+            <div class="processing-animation">
+                <div class="spinner"></div>
+                <span>Planning your trip...</span>
+            </div>
+        `;
+        messages.parentNode.insertBefore(tripStatus, messages.nextSibling);
+    }
+
+    if (!document.getElementById('itineraryResult')) {
+        const itineraryResult = document.createElement('div');
+        itineraryResult.id = 'itineraryResult';
+        itineraryResult.className = 'itinerary-result';
+        messages.parentNode.insertBefore(itineraryResult, messages.nextSibling);
+    }
+}
+
+function addMessage(text, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = isUser ? 'message user-message' : 'message bot-message';
+    messageDiv.innerHTML = text;
+    
+    messages.appendChild(messageDiv);
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function showTyping() {
+    typingIndicator.style.display = 'block';
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function hideTyping() {
+    typingIndicator.style.display = 'none';
+}
+
+function showTripStatus(destination) {
+    createStatusElements();
+    const statusEl = document.getElementById('tripStatus');
+    statusEl.querySelector('span').textContent = `Planning your trip to ${destination}...`;
+    statusEl.style.display = 'block';
+    messages.scrollTop = messages.scrollHeight;
+}
+
+function hideTripStatus() {
+    const statusEl = document.getElementById('tripStatus');
+    if (statusEl) {
+        statusEl.style.display = 'none';
+    }
+}
+
+function showItinerary(itineraryData) {
+    createStatusElements();
+    const itineraryEl = document.getElementById('itineraryResult');
+    const statusEl = document.getElementById('tripStatus');
+    
+    // Update status to complete
+    if (statusEl) {
+        statusEl.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span>✅ Trip planned successfully!</span>
+            </div>
+        `;
+        statusEl.classList.add('status-complete');
+        
+        // Hide status after 3 seconds
+        setTimeout(() => {
+            statusEl.style.display = 'none';
+        }, 3000);
+    }
+    
+    // Format and show itinerary
+    let formattedItinerary = '';
+    if (typeof itineraryData === 'string') {
+        formattedItinerary = itineraryData;
+    } else if (itineraryData.itinerary) {
+        formattedItinerary = itineraryData.itinerary;
+    } else {
+        formattedItinerary = JSON.stringify(itineraryData, null, 2);
+    }
+    
+    // Clean up the itinerary display
+    formattedItinerary = formattedItinerary
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .replace(/\\n/g, '\n')
+        .replace(/\\"/g, '"')
+        .trim();
+    
+    itineraryEl.textContent = formattedItinerary;
+    itineraryEl.style.display = 'block';
+    messages.scrollTop = messages.scrollHeight;
+    
+    // Add a bot message about the itinerary
+    addMessage("🎉 Here's your personalized itinerary! I've generated a detailed travel plan for your trip.");
+}
+
+// Poll for itinerary status
+async function pollItineraryStatus(userId, maxAttempts = 30) {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        try {
+            const response = await fetch('/itinerary_status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_id: userId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.status === 'success' && data.itinerary) {
+                hideTyping();
+                hideTripStatus();
+                showItinerary(data);
+                return true;
+            } else if (data.status === 'error') {
+                hideTyping();
+                hideTripStatus();
+                addMessage(`❌ Sorry, I couldn't generate the itinerary: ${data.message}`);
+                return false;
+            } else if (data.status === 'timeout') {
+                hideTyping();
+                hideTripStatus();
+                addMessage("⏰ The itinerary is taking longer than expected. Please try again in a moment.");
+                return false;
+            }
+            
+            // Wait 2 seconds before next poll
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+        } catch (error) {
+            console.error('Error polling itinerary:', error);
+        }
+    }
+    
+    hideTyping();
+    hideTripStatus();
+    addMessage("⏰ The itinerary generation timed out. Please try again.");
+    return false;
+}
+
+async function sendMessage() {
+    const message = messageInput.value.trim();
+    if (!message) return;
+
+    // Add user message
+    addMessage(message, true);
+    messageInput.value = '';
+
+    // Show typing indicator
+    showTyping();
+
+    try {
+        // Send to backend
+        const response = await fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                message: message,
+                user_id: 'user123'
+            })
+        });
+        
+        const data = await response.json();
+        
+        // Hide typing and add bot response
+        hideTyping();
+        addMessage(data.response);
+        
+        // Check if we should start planning
+        if (data.should_plan && data.trip_status && data.trip_status.destination) {
+            // Show trip status
+            showTripStatus(data.trip_status.destination);
+            
+            // Start polling for itinerary
+            setTimeout(() => pollItineraryStatus('user123'), 1000);
+        }
+        
+    } catch (error) {
+        console.error('Chat error:', error);
+        hideTyping();
+        addMessage("✈️ Don't worry! I'm here to help plan your trip. Tell me where you'd like to go!");
+    }
+}
+
+// Event listeners
+sendButton.addEventListener('click', sendMessage);
+
+messageInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+
+// Focus input on load
+messageInput.focus();
+
+// Add some sample conversation starters
+
+    </script>
+</body>
+</html>
